@@ -43,6 +43,7 @@ WORKDIR /home/setup/renderfall
 RUN mkdir build && apt-get install -y libpng-dev
 WORKDIR /home/setup/renderfall/build
 RUN cmake .. && make && make install
+RUN sudo apt-get install -y netpbm
 
 ENV PYTHONPATH "${PYTHONPATH}:/usr/local/lib/python3/dist-packages"
 

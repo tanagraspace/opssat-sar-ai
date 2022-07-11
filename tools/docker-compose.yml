@@ -10,6 +10,7 @@ services:
       - /home/tom/git/sar-ai/acquisition/data/:/input
       - ./labelling:/tools/labelling
       - ./plotting:/tools/plotting
+      - ./learning:/tools/learning
     environment:
       - DISPLAY
     command: gnuradio-companion

@@ -1,6 +1,4 @@
-numpy
 matplotlib
 pyqtgraph
 imageio==2.19.3
 pyqt5
-

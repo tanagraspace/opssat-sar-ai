@@ -18,18 +18,19 @@ Make sure the input ```.cf32``` files are in your local directory that is being 
 ```
 $ docker exec -it sar-ai-tools /bin/bash
 cd /tools/labelling
-python3 label.py /input test
+python3 label.py /input labelled_dataset.csv
 ```
 
 Use keys:
 - F: advance to next file
 - A: revert to previous file
 - R: clear all selected bounding boxes
+- B: toggle ROI lenght (there are short beacons and long beacons)
 
 Use mouseclick:
 - LEFT: drop a beacon bounding gox
 
-TODO: when advancing to next spectrum, record the positions of all bounding boxes, write these coords together with filename to output file. json csv xml whatever. Then clear all BBs.
+TODO: when advancing to next spectrum, record the positions of all bounding boxes, write these coords together with filename to the specified output file in .csv format,  then it will clear all bounding boxes before moving to the next spectrum!
 
 ## Plotting spectogram with Matplotlib
 ```

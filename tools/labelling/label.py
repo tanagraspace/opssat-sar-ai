@@ -104,16 +104,26 @@ class MainWindow(QtWidgets.QMainWindow):
     def tag_beacon(self, event):
         x, y = self.selector_roi.pos()
         w, h = self.selector_roi.size()
-        rectangle = pg.QtGui.QGraphicsRectItem(x, y, w, h)
-        rectangle.setPen(pg.mkPen('g'))
-        self.p1.addItem(rectangle)
-        beacon = {}
-        beacon['xmin'] = int(x)
-        beacon['ymin'] = int(y)
-        beacon['xmax'] = int(x + w)
-        beacon['ymax'] = int(y + h)
-        self.selected_beacons_per_frame.append(beacon)
-        self.beacon_graphics.append(rectangle)
+        if x < 0 or \
+           x + w > self.image_width or \
+           y < 0 or \
+           y + h > self.image_height:
+            print("ROI boundaries outside of image limits!")
+        else:
+
+            x, y = self.selector_roi.pos()
+            w, h = self.selector_roi.size()
+            rectangle = pg.QtGui.QGraphicsRectItem(x, y, w, h)
+            rectangle.setPen(pg.mkPen('g'))
+            self.p1.addItem(rectangle)
+            beacon = {}
+            beacon['xmin'] = x
+            beacon['ymin'] = y
+            beacon['xmax'] = x + w
+            beacon['ymax'] = y + h
+            self.selected_beacons_per_frame.append(beacon)
+            self.beacon_graphics.append(rectangle)
+            print(beacon)
 
 
 
@@ -131,12 +141,32 @@ class MainWindow(QtWidgets.QMainWindow):
         ppos = self.img.mapToParent(pos)
         x, y = ppos.x(), ppos.y()
         self.p1.setTitle("pos: (%0.2f, %0.2f)  pixel: (%d, %d)" % (x, y, j, i))
-        self.selector_roi.setPos(x - 11, y - 23)
+        self.selector_roi.setPos(x - 11, y - 23) #offset roi from mouse
+        
+        #print("Mouse_position = {}x {}y".format(x, y))
+        
+
+        x, y = self.selector_roi.pos()
+        w, h = self.selector_roi.size()
+
+        #print("ROI coords = {}x {}y {}w {}h".format(x, y, w, h))
+
+        if x < 0 or \
+           x + w > self.image_width or \
+           y < 0 or \
+           h + y > self.image_height:
+            self.selector_roi.setPen(pg.mkPen('r'))
+        else:
+            self.selector_roi.setPen(pg.mkPen('y'))
+            #color yellow
+
+
+
 
     def write_content(self):
         with open(self.output_file, 'w') as f: 
             write = csv.writer(f) 
-            write.writerow(['filename', 'width', 'height', 'class', 'xmin', 'ymin', 'xmax', 'ymax'])
+            write.writerow(['tag', 'filename', 'class', 'xmin', 'ymin', '', '', 'xmax', 'ymax', '', ''])
             write.writerows(self.csv_content)
         print(self.csv_content)
 
@@ -153,16 +183,54 @@ class MainWindow(QtWidgets.QMainWindow):
             # first check if the user tagged some beacons!
             if len(self.selected_beacons_per_frame) == 0:
                 # no beacons :(
-                csv_line = [self.current_filename, str(image_width), str(image_height), "", "", "", "", ""]
-                self.csv_content.append(csv_line)
+                csv_line = [    
+                                "TRAINING", 
+                                self.current_filename_image,
+                                "", 
+                                "",
+                                "",
+                                "",
+                                "",
+                                "",
+                                "",
+                                "",
+                                ""
+                            ]
+                
+                #self.csv_content.append(csv_line)
             else:
                 # 1 or more beacons :)))
                 for beacon in self.selected_beacons_per_frame:
                     if beacon['ymax'] - beacon['ymin'] == ROI_HEIGHT_BEACON_LONG:
-                        csv_line = [self.current_filename, str(image_width), str(image_height), "beacon_long", beacon['xmin'], beacon['ymin'], beacon['xmax'], beacon['ymax']]
+                        csv_line = [    "TRAINING", 
+                                        self.current_filename_image,
+                                        "beacon_long", 
+                                        float(beacon['xmin']/image_width), 
+                                        float(beacon['ymin']/image_height),
+                                        "",
+                                        "",
+                                        float(beacon['xmax']/image_width), 
+                                        float(beacon['ymax']/image_height),
+                                        "",
+                                        ""
+                                    ]
                     else:
-                        csv_line = [self.current_filename, str(image_width), str(image_height), "beacon_short", beacon['xmin'], beacon['ymin'], beacon['xmax'], beacon['ymax']]
+                        csv_line = [    "TRAINING", 
+                                        self.current_filename_image,
+                                        "beacon_short", 
+                                        float(beacon['xmin']/image_width), 
+                                        float(beacon['ymin']/image_height),
+                                        "",
+                                        "",
+                                        float(beacon['xmax']/image_width), 
+                                        float(beacon['ymax']/image_height),
+                                        "",
+                                        ""
+                                    ]
                     self.csv_content.append(csv_line)
+
+                    print("Image width: {}px   height {}px".format(image_width, image_height))
+                    print("writing line: {}".format(csv_line))
 
         if self.first:
             self.first = False
@@ -192,13 +260,16 @@ class MainWindow(QtWidgets.QMainWindow):
     # function that is triggering rendering of the FFT
     def show_image(self, file):
         png = file + ".png"
-        if not exists(png):
-            os.system("renderfall -n 512 -v -f float32 -l 256 -w hann {}".format(file))
+        jpg = file + ".jpg"
+        if not exists(png) or not exists(jpg):
+            os.system("renderfall -n 512 -v -f float32 -l 256 -w hann {} && pngtopnm {} | ppmtojpeg > {}".format(file, png, jpg))
         
-        self.data = imageio.imread(png)
+        self.data = imageio.imread(jpg)
+        self.image_height, self.image_width, self.level = self.data.shape
         self.img.setImage(self.data)
-        self.p1.setTitle(png)
+        self.p1.setTitle(jpg)
         self.current_filename = file
+        self.current_filename_image = jpg
 
 
 
