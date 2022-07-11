@@ -19,6 +19,7 @@ import logging
 
 ROI_HEIGHT_BEACON_LONG = 77
 ROI_HEIGHT_BEACON_SHORT = 66
+ROI_HEIGHT_BEACON_PARTIAL = 33
 
 class MainWindow(QtWidgets.QMainWindow):
 
@@ -35,11 +36,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_index = 0
         self.current_filename = ""
 
+        self.current_beacon_selector_index = 0
+
         # holds numpy data for one image at a time
         self.data = []
 
         # list of currently highlighed beacons, contains qgraphicsrectitems
         self.selected_beacons_per_frame = []
+
+        self.current_beacon_selector_index = 0
+        self.selector_sequence = [ROI_HEIGHT_BEACON_SHORT, ROI_HEIGHT_BEACON_LONG, ROI_HEIGHT_BEACON_PARTIAL]
 
         self.beacon_graphics = []
 
@@ -62,12 +68,12 @@ class MainWindow(QtWidgets.QMainWindow):
     # function triggered by pressing B key, toggles for a long beacon or short beacon selection
     def toggle_beacon_length(self):
         w, h = self.selector_roi.size()
-        if h == ROI_HEIGHT_BEACON_SHORT:
-            #current ROI selector is for a short beacon, make it a long one
-            self.selector_roi.setSize((22, ROI_HEIGHT_BEACON_LONG))
-        else:
-            #current selector ROI is for a long beacon, make it a short one
-            self.selector_roi.setSize((22, ROI_HEIGHT_BEACON_SHORT))
+        
+        self.selector_roi.setSize((22, self.selector_sequence[self.current_beacon_selector_index]))
+        self.current_beacon_selector_index += 1
+        if self.current_beacon_selector_index > len(self.selector_sequence) - 1:
+            self.current_beacon_selector_index = 0
+        
 
     # function that updates the zoomed in view of currently selected beacon when mouse moves
     def update_zoom(self, roi):
@@ -214,10 +220,23 @@ class MainWindow(QtWidgets.QMainWindow):
                                         "",
                                         ""
                                     ]
-                    else:
+                    elif beacon['ymax'] - beacon['ymin'] == ROI_HEIGHT_BEACON_SHORT:
                         csv_line = [    "TRAINING", 
                                         self.current_filename_image,
                                         "beacon_short", 
+                                        float(beacon['xmin']/image_width), 
+                                        float(beacon['ymin']/image_height),
+                                        "",
+                                        "",
+                                        float(beacon['xmax']/image_width), 
+                                        float(beacon['ymax']/image_height),
+                                        "",
+                                        ""
+                                    ]
+                    else:
+                        csv_line = [    "TRAINING", 
+                                        self.current_filename_image,
+                                        "beacon_partial", 
                                         float(beacon['xmin']/image_width), 
                                         float(beacon['ymin']/image_height),
                                         "",
