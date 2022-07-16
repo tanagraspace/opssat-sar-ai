@@ -171,8 +171,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def write_content(self):
         with open(self.output_file, 'w') as f: 
-            write = csv.writer(f) 
-            write.writerow(['tag', 'filename', 'class', 'xmin', 'ymin', '', '', 'xmax', 'ymax', '', ''])
+            write = csv.writer(f)
             write.writerows(self.csv_content)
         print(self.csv_content)
 
@@ -208,7 +207,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 # 1 or more beacons :)))
                 for beacon in self.selected_beacons_per_frame:
                     if beacon['ymax'] - beacon['ymin'] == ROI_HEIGHT_BEACON_LONG:
-                        csv_line = [    "TRAINING", 
+                        csv_line = [    "TRAIN", 
                                         self.current_filename_image,
                                         "beacon_long", 
                                         float(beacon['xmin']/image_width), 
@@ -221,7 +220,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                         ""
                                     ]
                     elif beacon['ymax'] - beacon['ymin'] == ROI_HEIGHT_BEACON_SHORT:
-                        csv_line = [    "TRAINING", 
+                        csv_line = [    "TRAIN", 
                                         self.current_filename_image,
                                         "beacon_short", 
                                         float(beacon['xmin']/image_width), 
@@ -234,7 +233,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                         ""
                                     ]
                     else:
-                        csv_line = [    "TRAINING", 
+                        csv_line = [    "TRAIN", 
                                         self.current_filename_image,
                                         "beacon_partial", 
                                         float(beacon['xmin']/image_width), 

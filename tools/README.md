@@ -14,23 +14,28 @@ docker-compose up
 ```
 
 ## Running the spectrogram labelling tool
-Make sure the input ```.cf32``` files are in your local directory that is being mapped to the container's /input root directory by the ```docker-compose.yml``` file. The ```label.py``` script will look for all ```.cf32``` files in this dir.
+Make sure the input ```.cf32``` files are in your local directory that is being mapped to the container's /input directory by the ```docker-compose.yml``` file. The ```label.py``` script will look for all ```.cf32``` files in this dir.
 ```
 $ docker exec -it sar-ai-tools /bin/bash
 cd /tools/labelling
-python3 label.py /input labelled_dataset.csv
+python3 label.py my_assigned_labelset.csv
+```
+
+Later on the user can add his/her csv chunk to the ```master_labelset.csv```:
+```
+cat my_assigned_labelset.csv >> master_labelset.csv
 ```
 
 Use keys:
 - F: advance to next file
 - A: revert to previous file
 - R: clear all selected bounding boxes
-- B: toggle ROI lenght (there are short beacons and long beacons)
+- B: toggle ROI lenght (there are short beacons and long beacons, and an ROI for cutoff beacons)
 
 Use mouseclick:
-- LEFT: drop a beacon bounding gox
+- LEFT: drop a beacon bounding box
 
-TODO: when advancing to next spectrum, record the positions of all bounding boxes, write these coords together with filename to the specified output file in .csv format,  then it will clear all bounding boxes before moving to the next spectrum!
+IMPORTANT NOTE: Note that the actual csv file contents are written when the application is closed via the 'X' button in the window!
 
 ## Plotting spectogram with Matplotlib
 ```
