@@ -1,6 +1,6 @@
 import numpy as np
 import os
-
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = "2"
 from tflite_model_maker.config import ExportFormat, QuantizationConfig
 from tflite_model_maker import model_spec
 from tflite_model_maker import object_detector
@@ -12,15 +12,15 @@ from tflite_support import metadata as _metadata
 from tflite_support import metadata_schema_py_generated as _metadata_fb
 
 import argparse
-
+import sys
 
 import tensorflow as tf
 assert tf.__version__.startswith('2')
 
-tf.get_logger().setLevel('ERROR')
+tf.get_logger().setLevel('INFO')
 from absl import logging
-logging.set_verbosity(logging.ERROR)
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = "2"
+logging.set_verbosity(logging.INFO)
+
 
 def write_labels(data, output_dir):
     """
@@ -49,13 +49,21 @@ if __name__ == "__main__":
     cliParser.add_argument('--model_filename', type=str, help='filename of .tflite model to generate (file will be put in /output)', required=True)
     args = cliParser.parse_args()
 
+    # disable GPU usage as a test
+    #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+    gpu_available = tf.test.is_gpu_available()
+    if gpu_available:
+        print("Found GPU")
+    else:
+        print("No GPU found, or disabled")
+        sys.exit()
+       
+    # limit GPU memory allocation
     gpus = tf.config.experimental.list_physical_devices('GPU')
-    if gpus:
-        try:
-            for gpu in gpus:
-                tf.config.experimental.set_memory_growth(gpu, True)
-        except RuntimeError as e:
-            print(e)
+    for gpu in gpus:
+        tf.config.experimental.set_memory_growth(gpu, True)
+        
 
     # load the csv with filepaths to spectra, and labelled bounding boxes
     train_data, val_data, test_data = object_detector.DataLoader.from_csv(args.labels_file)
@@ -72,6 +80,6 @@ if __name__ == "__main__":
     add_hyper_parameters(spec, overrides)
     print(spec.config)
 
-    model = object_detector.create(train_data, model_spec=spec, train_whole_model=True, epochs=50, batch_size=8, validation_data=val_data)
+    model = object_detector.create(train_data, model_spec=spec, train_whole_model=True, epochs=25, batch_size=16, validation_data=val_data)
     model.export(export_dir='/output', tflite_filename=args.model_filename)
     write_labels(train_data, '/output')
