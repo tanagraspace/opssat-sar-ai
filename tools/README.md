@@ -51,6 +51,13 @@ $ docker exec -it sar-ai-tools /bin/bash
 renderfall -n 512 -v -f float32 -l 256 -w hann  /input/<CF32_FILE> 
 ```
 
+## Batch convert .cf32 files to jpg spectra
+```
+$ docker exec -it sar-ai-tools /bin/bash
+for file in *.cf32; do renderfall -n 512 -f float32 -l 256 -w hann $file && pngtopnm "${file}.png" | ppmtojpeg > "${file}.jpg"; done 
+```
+
+
 
 
 
