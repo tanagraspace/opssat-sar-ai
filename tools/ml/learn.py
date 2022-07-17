@@ -17,9 +17,10 @@ import argparse
 import tensorflow as tf
 assert tf.__version__.startswith('2')
 
-tf.get_logger().setLevel('INFO')
+tf.get_logger().setLevel('ERROR')
 from absl import logging
-logging.set_verbosity(logging.INFO)
+logging.set_verbosity(logging.ERROR)
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = "2"
 
 def write_labels(data, output_dir):
     """
