@@ -50,11 +50,11 @@ if __name__ == "__main__":
 
     gpus = tf.config.experimental.list_physical_devices('GPU')
     if gpus:
-    try:
-        for gpu in gpus:
-        tf.config.experimental.set_memory_growth(gpu, True)
-    except RuntimeError as e:
-        print(e)
+        try:
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+        except RuntimeError as e:
+            print(e)
 
     # load the csv with filepaths to spectra, and labelled bounding boxes
     train_data, val_data, test_data = object_detector.DataLoader.from_csv(args.labels_file)
