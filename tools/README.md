@@ -14,6 +14,7 @@ docker-compose up
 ```
 
 ## Running the spectrogram labelling tool
+Run above commands first. A GUI will open. You can put this GUI to the side (do not close it) as we want to run another program, so we open a shell into the container.
 Make sure the input ```.cf32``` files are in your local directory that is being mapped to the container's /input directory by the ```docker-compose.yml``` file. The ```label.py``` script will look for all ```.cf32``` files in this dir.
 ```
 $ docker exec -it sar-ai-tools /bin/bash
