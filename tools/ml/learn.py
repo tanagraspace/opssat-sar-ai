@@ -64,15 +64,13 @@ if __name__ == "__main__":
 
     # override hyper params
     overrides = {
-        'num_classes' : 2,
+        'num_classes' : 3,
         'tflite_max_detections' : 10,
-        'verbose' : 1,
-        'epochs' : 50,
-        'batch_size' : 8
+        'verbose' : 1
     }
     add_hyper_parameters(spec, overrides)
     print(spec.config)
 
-    model = object_detector.create(train_data, model_spec=spec, train_whole_model=True, validation_data=val_data)
+    model = object_detector.create(train_data, model_spec=spec, train_whole_model=True, epochs=50, batch_size=8, validation_data=val_data)
     model.export(export_dir='/output', tflite_filename=args.model_filename)
     write_labels(train_data, '/output')
