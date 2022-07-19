@@ -10,18 +10,26 @@ TRAINING_DIR_NOBEACON = '../../dataset_01/data/nobeacon/training'
 TEST_DIR_BEACON = '../../dataset_01/data/beacon/test'
 TEST_DIR_NOBEACON = '../../dataset_01/data/nobeacon/test'
 
-IMG_DIR_BEACON = 'output/images/beacon/be'
-IMG_DIR_NOBEACON = 'output/images/nobeacon/be'
-
-#IMG_DIR_BEACON = 'output/images/test/beacon'
-#IMG_DIR_NOBEACON = 'output/images/test/nobeacon'
-
 MAX_VAL = 0xFFFFFFFF
 NORMALIZE_MAX = 250
 
-WRITE_IMAGES = False
-SINGLE_TEST_RUN = True
-TRAIN_MODEL = True
+TEST_MODE = True
+
+if TEST_MODE is True:
+  IMG_DIR_BEACON = 'output/images/test/beacon'
+  IMG_DIR_NOBEACON = 'output/images/test/nobeacon'
+  
+  WRITE_IMAGES = True
+  SINGLE_TEST_RUN = True
+  TRAIN_MODEL = False
+
+else:
+  IMG_DIR_BEACON = 'output/images/beacon/be'
+  IMG_DIR_NOBEACON = 'output/images/nobeacon/be'
+
+  WRITE_IMAGES = False
+  SINGLE_TEST_RUN = False
+  TRAIN_MODEL = True
 
 # this array will collect all I/Q matrices
 iq_data = []

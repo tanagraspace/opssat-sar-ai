@@ -15,6 +15,7 @@ TEST_DIR_NOBEACON = '../../dataset_01/data/nobeacon/test'
 
 NORMALIZE = True
 MAX_VAL = 0xFFFFFFFF
+#MAX_VAL = 1000000000
 
 INPUT_TENSOR_DATA_STRUCTURE_TYPE = 1
 
@@ -100,26 +101,26 @@ def build_iq_matrix_type1(filepath):
 
           # get chunk value
           # little-endian
-          #int_val = struct.unpack('<I', chunk)[0]
+          #val = struct.unpack('<I', chunk)[0]
 
           # big-endian
-          int_val = struct.unpack('>I', chunk)[0]
+          val = struct.unpack('>I', chunk)[0]
 
           # todo: understand and use the normalize function instead
           # https://www.tensorflow.org/api_docs/python/tf/linalg/normalize
           # or a rescale layer: https://www.tensorflow.org/api_docs/python/tf/keras/layers/Rescaling
           if NORMALIZE:
-            int_val = int_val / MAX_VAL
+            val = val / MAX_VAL
           
           if index % 2 != 0:
               # get the I value
-              #print("I: " + str(hex(int_val)).upper())
-              i_array.append(int_val)
+              #print("I: " + str(hex(val)).upper())
+              i_array.append(val)
           
           else:
               # get the Q value
-              #print("Q: " + str(hex(int_val)).upper())
-              q_array.append(int_val)
+              #print("Q: " + str(hex(val)).upper())
+              q_array.append(val)
               iq_pair_count = iq_pair_count + 1
 
           # increment index
@@ -154,26 +155,26 @@ def build_iq_matrix_type2(filepath):
 
           # get chunk value
           # little-endian
-          #int_val = struct.unpack('<I', chunk)[0]
+          #val = struct.unpack('<I', chunk)[0]
 
           # big-endian
-          int_val = struct.unpack('>I', chunk)[0]
+          val = struct.unpack('>I', chunk)[0]
 
           # todo: understand and use the normalize function instead
           # https://www.tensorflow.org/api_docs/python/tf/linalg/normalize
           # or a rescale layer: https://www.tensorflow.org/api_docs/python/tf/keras/layers/Rescaling
           if NORMALIZE:
-            int_val = int_val / MAX_VAL
+            val = val / MAX_VAL
           
           if index % 2 != 0:
               # get the I value
-              #print("I: " + str(hex(int_val)).upper())
-              iq_pair.append(int_val)
+              #print("I: " + str(hex(val)).upper())
+              iq_pair.append(val)
           
           else:
               # get the Q value
-              #print("Q: " + str(hex(int_val)).upper())
-              iq_pair.append(int_val)
+              #print("Q: " + str(hex(val)).upper())
+              iq_pair.append(val)
               iq_array.append(iq_pair)
               iq_pair = [] # reset
               iq_pair_count = iq_pair_count + 1
@@ -203,26 +204,26 @@ def build_iq_matrix_type3(filepath):
 
           # get chunk value
           # little-endian
-          #int_val = struct.unpack('<I', chunk)[0]
+          #val = struct.unpack('<I', chunk)[0]
 
           # big-endian
-          int_val = struct.unpack('>I', chunk)[0]
+          val = struct.unpack('>I', chunk)[0]
 
           # todo: understand and use the normalize function instead
           # https://www.tensorflow.org/api_docs/python/tf/linalg/normalize
           # or a rescale layer: https://www.tensorflow.org/api_docs/python/tf/keras/layers/Rescaling
           if NORMALIZE:
-            int_val = int_val / MAX_VAL
+            val = val / MAX_VAL
           
           if index % 2 != 0:
               # get the I value
-              #print("I: " + str(hex(int_val)).upper())
-              iq_array.append(int_val)
+              #print("I: " + str(hex(val)).upper())
+              iq_array.append(val)
           
           else:
               # get the Q value
-              #print("Q: " + str(hex(int_val)).upper())
-              iq_array.append(int_val)
+              #print("Q: " + str(hex(val)).upper())
+              iq_array.append(val)
               iq_pair_count = iq_pair_count + 1
 
           # increment index
