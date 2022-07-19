@@ -44,7 +44,7 @@ def create_model():
 
 
 # build I/Q data matrix from an I/Q file
-def build_iq_matrix(filepath, has_beacon):
+def build_iq_matrix(filepath):
   iq_pair_count = 0
   index = 1
 
@@ -96,14 +96,14 @@ def build_tensors():
   # BEACON: iterate directory containing i/q data with beacon
   count_beacon = 0
   for filename in os.listdir(TRAINING_DIR_BEACON):
-      iq_mat = build_iq_matrix(TRAINING_DIR_BEACON + "/" + filename, 1)
+      iq_mat = build_iq_matrix(TRAINING_DIR_BEACON + "/" + filename)
       iq_data.append(iq_mat)
       count_beacon = count_beacon + 1
 
   # NO BEACON: iterate directory containing i/q data with no beacon
   count_nobeacon = 0
   for filename in os.listdir(TRAINING_DIR_NOBEACON):
-      iq_mat = build_iq_matrix(TRAINING_DIR_NOBEACON + "/" + filename, 1)
+      iq_mat = build_iq_matrix(TRAINING_DIR_NOBEACON + "/" + filename)
       iq_data.append(iq_mat)
       count_nobeacon = count_nobeacon + 1
 
@@ -140,13 +140,13 @@ def build_test_tensors():
   # repeat data matrices building but for test data
   test_count_beacon = 0
   for test_filename in os.listdir(TEST_DIR_BEACON):
-      test_iq_mat = build_iq_matrix(TEST_DIR_BEACON + "/" + test_filename, 1)
+      test_iq_mat = build_iq_matrix(TEST_DIR_BEACON + "/" + test_filename)
       test_iq_data.append(test_iq_mat)
       test_count_beacon = test_count_beacon + 1
 
   test_count_nobeacon = 0
   for test_filename in os.listdir(TEST_DIR_NOBEACON):
-      test_iq_mat = build_iq_matrix(TEST_DIR_NOBEACON + "/" + test_filename, 1)
+      test_iq_mat = build_iq_matrix(TEST_DIR_NOBEACON + "/" + test_filename)
       test_iq_data.append(test_iq_mat)
       test_count_nobeacon = test_count_nobeacon + 1
 
