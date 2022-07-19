@@ -10,11 +10,18 @@ TRAINING_DIR_NOBEACON = '../../dataset_01/data/nobeacon/training'
 TEST_DIR_BEACON = '../../dataset_01/data/beacon/test'
 TEST_DIR_NOBEACON = '../../dataset_01/data/nobeacon/test'
 
+IMG_DIR_BEACON = 'output/images/beacon/be'
+IMG_DIR_NOBEACON = 'output/images/nobeacon/be'
 
-NORMALIZE_MAX = 250
+#IMG_DIR_BEACON = 'output/images/test/beacon'
+#IMG_DIR_NOBEACON = 'output/images/test/nobeacon'
+
 MAX_VAL = 0xFFFFFFFF
+NORMALIZE_MAX = 250
 
 WRITE_IMAGES = False
+SINGLE_TEST_RUN = True
+TRAIN_MODEL = True
 
 # this array will collect all I/Q matrices
 iq_data = []
@@ -113,7 +120,10 @@ def build_tensors():
       count_beacon = count_beacon + 1
 
       if WRITE_IMAGES is True:
-        write_image(iq_mat, 'output/images/beacon/be/' + filename + '.jpeg')
+        write_image(iq_mat, IMG_DIR_BEACON + '/' + filename + '.png')
+
+      if SINGLE_TEST_RUN is True:
+        break
 
 
   # NO BEACON: iterate directory containing i/q data with no beacon
@@ -124,7 +134,10 @@ def build_tensors():
       count_nobeacon = count_nobeacon + 1
 
       if WRITE_IMAGES is True:
-        write_image(iq_mat, 'output/images/nobeacon/be/' + filename + '.jpeg')
+        write_image(iq_mat, IMG_DIR_NOBEACON + '/' + filename + '.png')
+
+      if SINGLE_TEST_RUN is True:
+        break
 
   # build the input and output tensor
   input_tensor3d = tf.constant(iq_data)
@@ -160,7 +173,8 @@ def build_tensors():
 # create input and output tensors
 input_tensor, output_tensor = build_tensors()
 
-# create and train a model
-model = create_model()
-model.compile(optimizer="adam", loss="mse", metrics=["accuracy"])
-model.fit(input_tensor, output_tensor, epochs=5)
+if TRAIN_MODEL is True:
+  # create and train a model
+  model = create_model()
+  model.compile(optimizer="adam", loss="mse", metrics=["accuracy"])
+  model.fit(input_tensor, output_tensor, epochs=5)
