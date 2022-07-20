@@ -1,4 +1,5 @@
 import os
+import math
 import struct
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,6 +17,7 @@ NORMALIZE = False
 MAX_VAL = 0xFFFFFFFF
 
 BIG_ENDIAN = True
+SHOW_PLOTS = False
 
 def read_phasor_cartesian_coordinates(filepath):
   iq_pair_count = 0
@@ -63,41 +65,76 @@ def read_phasor_cartesian_coordinates(filepath):
   return (i_array, q_array)
 
 
-def plot(x, y, filename, index=0, show=False):
+def plot(x, y, xlabel, ylabel, title, filename, index=0, show=False):
   # draw plot
   fig, ax = plt.subplots()
   ax.scatter(x, y, s=[1]*len(y))
-
-  ax.set(xlabel='I', ylabel='Q',
-        title='I/Q Phasor')
-
+  ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
   ax.grid()
 
   # save figure to file
-  fig.savefig(PLOT_DIR_BEACON + '/' + filename + '_' + str(index) + '.png')
+  fig.savefig(filename + '.' + str(index) + '.png')
 
   if show:
     # show figure
     plt.show()
 
 
+# calculate amplitude
+def amplitude(i, q):
+  return math.sqrt(i^2 + q^2)
 
-# plot entire I/Q data
-# read I/Q files that have a beacon
-for filename in os.listdir(TRAINING_DIR_BEACON):
-  
-  # get phasor cartesian coordinates
-  # x = I and y = Q
-  i_array, q_array = read_phasor_cartesian_coordinates(TRAINING_DIR_BEACON + "/" + filename)
-
-  plot(i_array, q_array, filename)
+# calculate phase
+def phase(i, q):
+  return math.atan(q/i)
 
 
-  # only do this for the first file we encounter.
-  break
+def do_all_the_doings(iq_data_dir_path, plots_dir_path, show_plots, stop_at=1):
+  files_counter = 0
+
+  # plot entire I/Q data in given directory
+  for filename in os.listdir(iq_data_dir_path):
+
+    # plot phasor diagram
+
+    # get phasor cartesian coordinates
+    # x = I and y = Q
+    i_array, q_array = read_phasor_cartesian_coordinates(iq_data_dir_path + "/" + filename)
+    
+    # plot I/Q Phasor
+    plot(i_array, q_array, 'I', 'Q', 'I/Q Phasor', plots_dir_path + "/" + filename + ".phasor", files_counter+1, show_plots)
+
+    # plot amplitude and phase
+
+    # calculate amplitude and phase
+    amplitude_array = []
+    phase_array = []
+
+    for index in range(0, len(i_array)):
+      amplitude_array.append(amplitude(i_array[index], q_array[index]))
+      phase_array.append(phase(i_array[index], q_array[index]))
+
+    # plot Amplitude / Phase'
+    plot(phase_array, amplitude_array, 'φ', 'A', 'Amplitude / Phase', plots_dir_path + "/" + filename + ".amplitude_and_phase", files_counter+1, show_plots)
+
+    # plot Amplitude / Time
+    #plot(range(0, len(amplitude_array)), amplitude_array, 't', 'A', 'Amplitude / Time', plots_dir_path + "/" + filename + ".amplitude_and_time", files_counter+1, show_plots)
+
+    # plot Phase / Time
+    #plot(range(0, len(phase_array)), phase_array, 't', 'φ', 'Phase / Time', plots_dir_path + "/" + filename + ".phase_and_time", files_counter+1, show_plots)
+
+    # only process the asked number of I/Q files 
+    files_counter = files_counter + 1
+    if files_counter == stop_at:
+      break
 
 
+# now do all the doings
+do_all_the_doings(TRAINING_DIR_BEACON, PLOT_DIR_BEACON, SHOW_PLOTS, 2)
+do_all_the_doings(TRAINING_DIR_NOBEACON, PLOT_DIR_NOBEACON, SHOW_PLOTS, 2)
 
+
+'''
 # plot segments of the I/Q data
 step = 10000
 index_max = 5
@@ -115,3 +152,4 @@ for filename in os.listdir(TRAINING_DIR_BEACON):
 
   # only do this for the first file we encounter.
   break
+'''
