@@ -1,6 +1,10 @@
 import numpy as np
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = "2"
+
+# https://stackoverflow.com/questions/47910681/tensorflow-setting-allow-growth-to-true-does-still-allocate-memory-of-all-my-gp
+# limit GPU memory alloc
+os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 from tflite_model_maker.config import ExportFormat, QuantizationConfig
 from tflite_model_maker import model_spec
 from tflite_model_maker import object_detector
@@ -20,6 +24,7 @@ import sys
 
 import tensorflow as tf
 assert tf.__version__.startswith('2')
+
 
 tf.get_logger().setLevel('INFO')
 from absl import logging
@@ -80,36 +85,45 @@ if __name__ == "__main__":
 
         #sys.exit()
        
-
+    start = datetime.datetime.utcnow()
     # load the csv with filepaths to spectra, and labelled bounding boxes
-    train_data, val_data, test_data = object_detector.DataLoader.from_csv(args.labels_file)
+    train_data, validation_data, test_data = object_detector.DataLoader.from_csv(args.labels_file)
+
+    print("Samples: {} train, {} validation, {} test".format(len(train_data), len(validation_data), len(test_data)))
 
     # load model architecture 'efficientdet_lite1'
     spec = model_spec.get(args.model_type)
 
     # override hyper params
     overrides = {
-        'num_classes' : 2,
+        'num_classes' : 1,
         'tflite_max_detections' : 15,
         'verbose' : 1,
-        'num_epochs' : 15,
+        'num_epochs' : 1,
         'batch_size' : 16,
-        'jitter_min' : ,
-        'jitter_max' : 
         'max_instances_per_image' : 15,
-        'aspect_ratios' : [0.133, 0.152]
+        'aspect_ratios' : [0.133, 0.152],
+        'jitter_min' : 0.1,
+        'jitter_max' : 4.0,
+        'num_scales' : 1
     }
     add_hyper_parameters(spec, overrides)
     print(spec.config)
 
-    model = object_detector.create(train_data, model_spec=spec, train_whole_model=True, epochs=overrides['num_epochs'], batch_size=overrides['batch_size'], validation_data=val_data)
-        
+    # train model and evaluate with test_data afterwards the non-quantized model
+    model = object_detector.create(train_data, model_spec=spec, train_whole_model=True, epochs=overrides['num_epochs'], batch_size=overrides['batch_size'], validation_data=validation_data)
+    model_evaluation = model.evaluate(test_data)
+     
     #config = QuantizationConfig.for_float16()
     
+    # export tflite and re-asses model with test_data
     MODEL_FILENAME = str(uuid.uuid4())[:8] + "_" + args.model_filename
     model.export(export_dir='/output', tflite_filename=MODEL_FILENAME)
+    #tflite_evaluation = model.evaluate_tflite('/output/' + MODEL_FILENAME, test_data)
     
     write_labels(train_data, '/output')
+    
+    stop = datetime.datetime.utcnow()
 
     # generate a report
     model_generation_report = {}
@@ -119,6 +133,10 @@ if __name__ == "__main__":
     model_generation_report['generated'] = str(datetime.datetime.utcnow())
     model_generation_report['hparams'] = spec.config.as_dict()
     model_generation_report['hardware'] = hw
+    model_generation_report['labelset'] = {'file' : args.labels_file, 'samples_train' : len(train_data), 'samples_test' : len(test_data), 'samples_validation' : len(validation_data) }
+    model_generation_report['model_evaluation'] = model_evaluation
+    #model_generation_report['tflite_evaluation'] = tflite_evaluation
+    model_generation_report['train_time'] = (stop - start).total_seconds()
 
     with open('{}/{}.json'.format(EXPORT_DIR, MODEL_FILENAME), 'w') as fp:
         json.dump(model_generation_report, fp)
