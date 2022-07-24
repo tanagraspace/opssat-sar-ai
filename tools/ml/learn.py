@@ -62,10 +62,10 @@ if __name__ == "__main__":
     cliParser.add_argument('--labels_file', type=str, help='absolute path to csv file containg the labels', required=True)
     cliParser.add_argument('--model_type', type=str, help='which model to use', required=True)
     #cliParser.add_argument('--hyper_params', type=str, help='absolute path to YAML file specifying hyper parameters', required=True)
-    cliParser.add_argument('--model_filename', type=str, help='filename of .tflite model to generate (file will be put in /output)', required=True)
+    cliParser.add_argument('--model_filename', type=str, help='filename of .tflite model to generate (file will be put in /input)', required=True)
     args = cliParser.parse_args()
 
-    EXPORT_DIR = '/output'
+    EXPORT_DIR = '/input'
 
     # disable GPU usage as a test
     #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -100,11 +100,11 @@ if __name__ == "__main__":
         'tflite_max_detections' : 15,
         'verbose' : 1,
         'num_epochs' : 1,
-        'batch_size' : 16,
+        'batch_size' : 8,
         'max_instances_per_image' : 15,
         'aspect_ratios' : [0.133, 0.152],
-        'jitter_min' : 0.1,
-        'jitter_max' : 4.0,
+        'jitter_min' : 1.9,
+        'jitter_max' : 2.0,
         'num_scales' : 1
     }
     add_hyper_parameters(spec, overrides)
@@ -118,10 +118,10 @@ if __name__ == "__main__":
     
     # export tflite and re-asses model with test_data
     MODEL_FILENAME = str(uuid.uuid4())[:8] + "_" + args.model_filename
-    model.export(export_dir='/output', tflite_filename=MODEL_FILENAME)
+    model.export(export_dir='/input', tflite_filename=MODEL_FILENAME)
     #tflite_evaluation = model.evaluate_tflite('/output/' + MODEL_FILENAME, test_data)
     
-    write_labels(train_data, '/output')
+    write_labels(train_data, '/input')
     
     stop = datetime.datetime.utcnow()
 
