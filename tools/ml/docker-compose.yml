@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  gnuradio:
+    image: waikatodatamining/tflite_model_maker:2.4.3_cpu
+    container_name: sar-ai-tflite-model-maker
+    network_mode : "host"
+    privileged: true    
+    volumes:
+      - ./input:/input
+      - ./output:/output
+      - ./models:/models
+      - ./predict.py:/predict.py
+
+      #- ./learn.py:/learn.py
+      #- /home/tom/git/opssat-sar-ai/tools/labelling/master_labelset.csv:/input/master_labelset.csv
+    command: python3 predict.py --image "/input/1645386152.07_raw_ulf406025000_dlf1544185000_gain65_inputsr1500000_outputsr37500_0002.cf32.jpg"
+                                 --model "/models/97708c55_efficientdet_lite1.tflite"
+                                 --labels "/input/labels.txt"
+    #command: python3 learn.py --labels_file /input/master_labelset_1class_train.csv --model_type efficientdet_lite1 --model_filename efficientdet_lite1.tflite

@@ -1,0 +1,3 @@
+[submodule "sandbox/inference-c/stb"]
+	path = sandbox/inference-c/stb
+	url = https://github.com/georgeslabreche/stb.git
