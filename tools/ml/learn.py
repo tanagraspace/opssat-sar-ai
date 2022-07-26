@@ -61,7 +61,8 @@ if __name__ == "__main__":
     cliParser = argparse.ArgumentParser(description='Train a TF object detection model and export to .tflite format')    
     cliParser.add_argument('--labels_file', type=str, help='absolute path to csv file containg the labels', required=True)
     cliParser.add_argument('--model_type', type=str, help='which model to use', required=True)
-    #cliParser.add_argument('--hyper_params', type=str, help='absolute path to YAML file specifying hyper parameters', required=True)
+    cliParser.add_argument('--num_epochs', type=int, help='number of epochs to train for', required=True)
+    cliParser.add_argument('--use_augmix', type=str, help='augmix policy', required=False)
     cliParser.add_argument('--model_filename', type=str, help='filename of .tflite model to generate (file will be put in /output)', required=True)
     args = cliParser.parse_args()
 
@@ -99,20 +100,29 @@ if __name__ == "__main__":
         'num_classes' : 1,
         'tflite_max_detections' : 15,
         'verbose' : 1,
-        'num_epochs' : 1,
-        'batch_size' : 16,
-        'max_instances_per_image' : 15,
-        'aspect_ratios' : [0.133, 0.152],
-        'jitter_min' : 0.1,
-        'jitter_max' : 4.0,
-        'num_scales' : 1
+        'num_epochs' : args.num_epochs,
+        'batch_size' : 8,
+        'max_instances_per_image' : 8
     }
+    if args.use_augmix is not None:
+        overrides['use_augmix'] = args.use_augmix
+        overrides['input_rand_hflip'] = True
+    else:
+        overrides['input_rand_hflip'] = False
+        
     add_hyper_parameters(spec, overrides)
     print(spec.config)
 
     # train model and evaluate with test_data afterwards the non-quantized model
-    model = object_detector.create(train_data, model_spec=spec, train_whole_model=True, epochs=overrides['num_epochs'], batch_size=overrides['batch_size'], validation_data=validation_data)
+    model = object_detector.create(train_data, model_spec=spec, do_train=False)
+    model.train(train_data=train_data,  validation_data=validation_data, epochs=overrides['num_epochs'], batch_size=overrides['batch_size'])
+    metrics = model.model.history.history
+
+
+    
+    
     model_evaluation = model.evaluate(test_data)
+    print(str(model_evaluation))
      
     #config = QuantizationConfig.for_float16()
     
@@ -134,9 +144,9 @@ if __name__ == "__main__":
     model_generation_report['hparams'] = spec.config.as_dict()
     model_generation_report['hardware'] = hw
     model_generation_report['labelset'] = {'file' : args.labels_file, 'samples_train' : len(train_data), 'samples_test' : len(test_data), 'samples_validation' : len(validation_data) }
-    model_generation_report['model_evaluation'] = model_evaluation
-    #model_generation_report['tflite_evaluation'] = tflite_evaluation
-    model_generation_report['train_time'] = (stop - start).total_seconds()
+    model_generation_report['model_evaluation'] = {k : float(v) for k, v in model_evaluation.items()}
+    model_generation_report['metrics'] = metrics
+    model_generation_report['train_time'] = int((stop - start).total_seconds())
 
     with open('{}/{}.json'.format(EXPORT_DIR, MODEL_FILENAME), 'w') as fp:
         json.dump(model_generation_report, fp)
