@@ -97,17 +97,17 @@ def predict(model, labels, image, threshold, output=None):
     interpreter = load_model(model)
     _, input_height, input_width, _ = interpreter.get_input_details()[0]['shape']
 
-    print("Model input: {}".format(interpreter.get_input_details()[0]['shape']))
-    print("Model output: {}".format(interpreter.get_output_details()[0]['shape']))
+    #print("Model input: {}".format(interpreter.get_input_details()[0]['shape']))
+    #print("Model output: {}".format(interpreter.get_output_details()[0]['shape']))
 
-    print(interpreter.get_input_details())
+    #print(interpreter.get_input_details())
     classes = load_classes(labels)
-    print(classes)
+    #print(classes)
 
     preprocessed_image, original_image = preprocess_image(image, (input_height, input_width))
 
     image_height, image_width, _ = original_image.shape
-    print("original height: {} width: {}".format(image_height, image_width))
+    #print("original height: {} width: {}".format(image_height, image_width))
     results = detect_objects(interpreter, preprocessed_image, (image_height, image_width), threshold=threshold, labels=classes)
     if output is None:
         print(results.to_json_string())
@@ -133,52 +133,109 @@ if __name__ == "__main__":
     #INPUT_IMAGE = "/input/1645389029.12_raw_ulf406025000_dlf1544185000_gain65_inputsr1500000_outputsr37500_{}.cf32.jpg".format(str(i).zfill(4))
     #INPUT_IMAGE = filepath
 
-    INPUT_IMAGE = args.image
-    OUTPUT_IMAGE = INPUT_IMAGE.replace('.jpg', '.pred.jpg').replace('/input/', '/output/')
+    if '*' in args.image:
+        for filepath in sorted(glob.iglob(args.image)):
+            INPUT_IMAGE = filepath
+            OUTPUT_IMAGE = INPUT_IMAGE.replace('.jpg', '.pred.jpg').replace('/input/', '/output/')
 
-    results = predict(  model=args.model, 
-                        labels=args.labels, 
-                        image=args.image, 
-                        threshold=0.15, 
-                        output=OUTPUT_IMAGE.replace('.jpg', '.json'))
+            print("Running inference on image: {}".format(INPUT_IMAGE))
 
-    annotated_image = cv2.imread(INPUT_IMAGE)
+            results = predict(  model=args.model, 
+                                labels=args.labels, 
+                                image=INPUT_IMAGE, 
+                                threshold=0.25, 
+                                output=OUTPUT_IMAGE.replace('.jpg', '.json'))
 
-    font                   = cv2.FONT_HERSHEY_SIMPLEX
-    fontScale              = 0.3
-    fontColor              = (255,0,0)
-    thickness              = 1
-    lineType               = 2
+            annotated_image = cv2.imread(INPUT_IMAGE)
 
-    for box in results['objects']:
-        
-        x1 = box['bbox']['left']
-        y1 = box['bbox']['top']
-        x2 = box['bbox']['right']
-        y2 = box['bbox']['bottom']
+            font                   = cv2.FONT_HERSHEY_SIMPLEX
+            fontScale              = 0.3
+            fontColor              = (255,0,0)
+            thickness              = 1
+            lineType               = 2
 
-        if round((100 * box['score'] * 2), 1) > 50.0:
+            for box in results['objects']:
+                
+                x1 = box['bbox']['left']
+                y1 = box['bbox']['top']
+                x2 = box['bbox']['right']
+                y2 = box['bbox']['bottom']
 
-            cv2.rectangle(annotated_image,(x1,y1),(x2,y2),(0,255,0),1)
-            cv2.putText(    annotated_image, '{}: {}'.format(box['label'], round((100 * box['score'] * 2), 1)), 
-                            (x1, y1 - 10), 
-                            font, 
-                            fontScale,
-                            fontColor,
-                            thickness,
-                            lineType)
-        else:
+                if round((100 * box['score'] * 2), 1) > 50.0:
 
-            cv2.rectangle(annotated_image,(x1,y1),(x2,y2),(255,0,0),1)
-            cv2.putText(    annotated_image, '{}: {}'.format(box['label'], round((100 * box['score'] * 2), 1)), 
-                            (x1, y1 - 10), 
-                            font, 
-                            fontScale,
-                            fontColor,
-                            thickness,
-                            lineType)
+                    cv2.rectangle(annotated_image,(x1,y1),(x2,y2),(0,255,0),1)
+                    cv2.putText(    annotated_image, '{}: {}'.format(box['label'], round((100 * box['score'] * 2), 1)), 
+                                    (x1, y1 - 10), 
+                                    font, 
+                                    fontScale,
+                                    fontColor,
+                                    thickness,
+                                    lineType)
+                else:
+
+                    cv2.rectangle(annotated_image,(x1,y1),(x2,y2),(255,0,0),1)
+                    cv2.putText(    annotated_image, '{}: {}'.format(box['label'], round((100 * box['score'] * 2), 1)), 
+                                    (x1, y1 - 10), 
+                                    font, 
+                                    fontScale,
+                                    fontColor,
+                                    thickness,
+                                    lineType)
+                    
+
+            cv2.imwrite(OUTPUT_IMAGE, annotated_image)
+            print("Done writing image: {}".format(OUTPUT_IMAGE))
+
+    else:
+
+        INPUT_IMAGE = args.image
+        OUTPUT_IMAGE = INPUT_IMAGE.replace('.jpg', '.pred.jpg').replace('/input/', '/output/')
+
+        print("Running inference on image: {}".format(INPUT_IMAGE))
+
+        results = predict(  model=args.model, 
+                            labels=args.labels, 
+                            image=INPUT_IMAGE, 
+                            threshold=0.15, 
+                            output=OUTPUT_IMAGE.replace('.jpg', '.json'))
+
+        annotated_image = cv2.imread(INPUT_IMAGE)
+
+        font                   = cv2.FONT_HERSHEY_SIMPLEX
+        fontScale              = 0.3
+        fontColor              = (255,0,0)
+        thickness              = 1
+        lineType               = 2
+
+        for box in results['objects']:
             
+            x1 = box['bbox']['left']
+            y1 = box['bbox']['top']
+            x2 = box['bbox']['right']
+            y2 = box['bbox']['bottom']
 
-    cv2.imwrite(OUTPUT_IMAGE, annotated_image)
-    print("Done writing image: {}".format(OUTPUT_IMAGE))
+            if round((100 * box['score'] * 2), 1) > 50.0:
+
+                cv2.rectangle(annotated_image,(x1,y1),(x2,y2),(0,255,0),1)
+                cv2.putText(    annotated_image, '{}: {}'.format(box['label'], round((100 * box['score'] * 2), 1)), 
+                                (x1, y1 - 10), 
+                                font, 
+                                fontScale,
+                                fontColor,
+                                thickness,
+                                lineType)
+            else:
+
+                cv2.rectangle(annotated_image,(x1,y1),(x2,y2),(255,0,0),1)
+                cv2.putText(    annotated_image, '{}: {}'.format(box['label'], round((100 * box['score'] * 2), 1)), 
+                                (x1, y1 - 10), 
+                                font, 
+                                fontScale,
+                                fontColor,
+                                thickness,
+                                lineType)
+                
+
+        cv2.imwrite(OUTPUT_IMAGE, annotated_image)
+        print("Done writing image: {}".format(OUTPUT_IMAGE))
 

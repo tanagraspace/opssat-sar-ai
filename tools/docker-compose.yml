@@ -7,7 +7,7 @@ services:
     network_mode : "host"
     privileged: true    
     volumes:
-      - /home/tom/git/sar-ai/acquisition/data/raw/1645382604:/input
+      - /home/tom/git/sar-ai/acquisition/data/raw:/input
       - ./labelling:/tools/labelling
       - ./plotting:/tools/plotting
       - ./learning:/tools/learning
