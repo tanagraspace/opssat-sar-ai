@@ -65,6 +65,9 @@ if __name__ == "__main__":
     cliParser.add_argument('--use_augmix', type=str, help='augmix policy', required=False)
     cliParser.add_argument('--model_filename', type=str, help='filename of .tflite model to generate (file will be put in /output)', required=True)
     args = cliParser.parse_args()
+    
+    MODEL_FILENAME = str(uuid.uuid4())[:8] + "_" + args.model_filename
+    print("Running for: {}".format(MODEL_FILENAME))
 
     EXPORT_DIR = '/output'
 
@@ -101,22 +104,24 @@ if __name__ == "__main__":
         'tflite_max_detections' : 15,
         'verbose' : 1,
         'num_epochs' : args.num_epochs,
-        'batch_size' : 8,
-        'max_instances_per_image' : 8
+        'batch_size' : 16,
+        'max_instances_per_image' : 8,
+        'learning_rate': 0.08
     }
     if args.use_augmix is not None:
         overrides['use_augmix'] = args.use_augmix
-        overrides['input_rand_hflip'] = True
-    else:
-        overrides['input_rand_hflip'] = False
         
     add_hyper_parameters(spec, overrides)
     print(spec.config)
 
     # train model and evaluate with test_data afterwards the non-quantized model
-    model = object_detector.create(train_data, model_spec=spec, do_train=False)
-    model.train(train_data=train_data,  validation_data=validation_data, epochs=overrides['num_epochs'], batch_size=overrides['batch_size'])
+    #model = object_detector.create(train_data, model_spec=spec, do_train=False, train_whole_model = True)
+    #model.train(train_data=train_data,  validation_data=validation_data, epochs=overrides['num_epochs'], batch_size=overrides['batch_size'])
+    
+    # train model and evaluate with test_data afterwards the non-quantized model
+    model = object_detector.create(model_spec=spec, do_train=True, train_whole_model = True, train_data=train_data,  validation_data=validation_data, epochs=overrides['num_epochs'], batch_size=overrides['batch_size'])
     metrics = model.model.history.history
+    print(metrics)
 
 
     
@@ -127,7 +132,7 @@ if __name__ == "__main__":
     #config = QuantizationConfig.for_float16()
     
     # export tflite and re-asses model with test_data
-    MODEL_FILENAME = str(uuid.uuid4())[:8] + "_" + args.model_filename
+
     model.export(export_dir='/output', tflite_filename=MODEL_FILENAME)
     #tflite_evaluation = model.evaluate_tflite('/output/' + MODEL_FILENAME, test_data)
     
@@ -146,6 +151,7 @@ if __name__ == "__main__":
     model_generation_report['labelset'] = {'file' : args.labels_file, 'samples_train' : len(train_data), 'samples_test' : len(test_data), 'samples_validation' : len(validation_data) }
     model_generation_report['model_evaluation'] = {k : float(v) for k, v in model_evaluation.items()}
     model_generation_report['metrics'] = metrics
+    print(metrics)
     model_generation_report['train_time'] = int((stop - start).total_seconds())
 
     with open('{}/{}.json'.format(EXPORT_DIR, MODEL_FILENAME), 'w') as fp:
