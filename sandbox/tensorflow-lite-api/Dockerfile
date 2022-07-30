@@ -1,5 +1,7 @@
 FROM ubuntu:16.04 AS builder
 
+#SOURCE: https://gitlab.com/esa/NMF/ops-sat-sepp-ci-docker/-/blob/master/Dockerfile
+
 RUN apt-get update && apt-get install -y \
         wget git-core \
         sudo diffstat \
@@ -46,10 +48,6 @@ RUN apt-get update && apt-get install -y \
 
 ENV LANG=en_US.UTF-8
 
-# Add ipk-build script
-COPY ipk-build /usr/bin/ipk-build
-RUN chmod a+x /usr/bin/ipk-build
-
 # Configure default user
 COPY sudoers.user /etc/
 RUN groupadd -g 70 user && \
@@ -69,7 +67,7 @@ RUN echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.
 RUN sudo apt update && sudo apt install -y bazel=5.0.0 python3-numpy
 
 # get tensorflow v2.9
-user user
+USER user
 WORKDIR /home/user
 RUN git clone https://github.com/tensorflow/tensorflow.git tensorflow_src
 WORKDIR /home/user/tensorflow_src

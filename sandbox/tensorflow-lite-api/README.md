@@ -3,7 +3,11 @@
 Make sure Docker is installed. Build the image and run a container as shown below:
 ```
 DOCKER_BUILDKIT=1 docker build . -t sepp-toolchain:latest
-docker run -u 0 -it --rm --entrypoint /bin/bash --name sepp-toolchain -v /home/tom/git/opssat-sar-ai/sandbox/inference-c:/home/user/share sepp-toolchain
+docker run -u 0 -it --rm --entrypoint /bin/bash --name sepp-toolchain sepp-toolchain
+```
+(Optional) Any local source code folders that need to be mounted into the container should be listed as volumes:
+```
+docker run -u 0 -it --rm --entrypoint /bin/bash -v /local/myfolder:/home/user/myfolder --name sepp-toolchain sepp-toolchain
 ```
 
 Inside the docker container run bazel and wait for the build to complete:
