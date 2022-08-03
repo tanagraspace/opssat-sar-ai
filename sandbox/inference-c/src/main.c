@@ -1,21 +1,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "tensorflow/lite/c/c_api.h"
+#include "tensorflow/lite/c/c_api_experimental.h"
+#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/c/builtin_op_data.h"
+#include "tensorflow/lite/c/ujpeg.h"
 
 /* define convenience macros */
 #define streq(s1,s2)    (!strcmp ((s1), (s2)))
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "tensorflow/lite/c/stb_image.h"
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include "stb_image_resize.h"
+#include "tensorflow/lite/c/stb_image_resize.h"
 
 /* todo: eventually remove */
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+#include "tensorflow/lite/c/stb_image_write.h"
 
-#define IMAGE_CHANNELS                    STBI_grey
+#define IMAGE_CHANNELS                    STBI_rgb
 
 
 typedef enum {
@@ -66,7 +71,7 @@ int infer(uint8_t *img_buffer, char *model_filename, int input_xsize, int input_
       return TF_ALLOCATE_TENSOR;
     }
 
-    int input_dims[4] = {1, input_ysize, input_xsize, IMAGE_CHANNELS};
+    int input_dims[4] = {1, input_xsize, input_ysize, IMAGE_CHANNELS};
     tfl_status = TfLiteInterpreterResizeInputTensor(interpreter, 0, input_dims, 4);
 
     /* log and exit in case of error */
@@ -109,10 +114,30 @@ int infer(uint8_t *img_buffer, char *model_filename, int input_xsize, int input_
     }
 
     /* extract the output tensor data */
-    const TfLiteTensor* output_tensor_boxes = TfLiteInterpreterGetOutputTensor(interpreter, 0);
-    const TfLiteTensor* output_tensor_classes = TfLiteInterpreterGetOutputTensor(interpreter, 1);
-    const TfLiteTensor* output_tensor_score = TfLiteInterpreterGetOutputTensor(interpreter, 2);
-    const TfLiteTensor* output_tensor_count = TfLiteInterpreterGetOutputTensor(interpreter, 3);
+    const TfLiteTensor *output_tensor_boxes = TfLiteInterpreterGetOutputTensor(interpreter, 0);
+    const TfLiteTensor *output_tensor_classes = TfLiteInterpreterGetOutputTensor(interpreter, 1);
+    const TfLiteTensor *output_tensor_score = TfLiteInterpreterGetOutputTensor(interpreter, 2);
+    const TfLiteTensor *output_tensor_count = TfLiteInterpreterGetOutputTensor(interpreter, 3);
+
+    int i;
+    /* bounding boxes */
+    float boxes[15][4];
+    TfLiteTensorCopyToBuffer(output_tensor_boxes, boxes, 15 * 4 * sizeof(float));
+    for (i = 0; i < 15; i++ ) {
+         printf("boxes[%d] = %f %f %f %f\n", i ,boxes[i][0] ,boxes[i][1],boxes[i][2],boxes[i][3]);
+    }
+
+    /* score per bounding box */
+    float scores[15];
+    TfLiteTensorCopyToBuffer(output_tensor_score, scores, 15 * sizeof(float));
+    for (i = 0; i < 15; i++ ) {
+         printf("scores[%d] =  %f\n", i ,scores[i]);
+    }
+
+    /* total bounding box count */
+    float count[1];
+    TfLiteStatus status = TfLiteTensorCopyToBuffer(output_tensor_count, count, sizeof(float));
+    printf("count: %f\n", count[0]);
 
     /* todo: do the doings */
 
