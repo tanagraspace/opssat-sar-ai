@@ -6,19 +6,22 @@ Use the TensorFlow Lite C API to run oject detection inferences on SDR JPG spect
 ## Linker Setup
 Set the libary paths so that the compiler's linker knows where to look for the *tensorflowlite_c* shared object file:
 
-### On an x86_64 environment:
+### On x86_64
 ```bash
 export LIBRARY_PATH="<PROJECT_PATH>/sandbox/inference-c/lib/x86_64/tensorflowlite_c"
 export LD_LIBRARY_PATH="<PROJECT_PATH>/sandbox/inference-c/lib/x86_64/tensorflowlite_c"
 sudo ldconfig
 ```
 
-### ### On an ARM32 environment:
+### On ARM32
 ```bash
 export LIBRARY_PATH="<PROJECT_PATH>/sandbox/inference-c/lib/arm32/tensorflowlite_c"
 export LD_LIBRARY_PATH="<PROJECT_PATH>/sandbox/inference-c/lib/arm32/tensorflowlite_c"
 sudo ldconfig
 ```
+
+### Other
+Feel free to support other environments by including a dedicated architecture lib folder under `<PROJECT_PATH>/sandbox/inference-c/lib` and updated the *Makefile* to support cross-compiling in that environment.
 
 ## Build
 - Initialize and update the stb Git submodule: `git submodule init && git submodule update`
