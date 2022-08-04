@@ -4,8 +4,8 @@ Use the TensorFlow Lite C API to run oject detection inferences on SDR JPG spect
 - Uses the [TensorFlow GitHub Repo (branch r2.9)](https://github.com/tensorflow/tensorflow/tree/r2.9) as the compiler's include path option.
 
 ## Build
-- Initialize and update the stb Git submodule: `git submodule init && git submodule update`.
-- Compile with `make`. Can also compile for ARM architecture with `make TARGET=arm`.
+- Initialize and update the stb Git submodule: `git submodule init && git submodule update`
+- Compile with `make`. Can also compile for ARM architecture with `make TARGET=arm`
 
 ## Run
 Super easy to run.
