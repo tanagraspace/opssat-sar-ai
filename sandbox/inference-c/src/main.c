@@ -139,32 +139,28 @@ int infer(uint8_t *img_buffer, char *model_filename, int input_xsize, int input_
     /* extract the output tensor data */
 
     /* total bounding box count */
-    const TfLiteTensor *output_tensor_count = TfLiteInterpreterGetOutputTensor(interpreter, 3);  
-    float count_buffer[1];
-    TfLiteStatus status = TfLiteTensorCopyToBuffer(output_tensor_count, count_buffer, sizeof(float));
-    int count = (int)count_buffer[0];
-    printf("count: %i\n", count);
+    // const TfLiteTensor *output_tensor_count = TfLiteInterpreterGetOutputTensor(interpreter, 3);  
+    // float count_buffer[1];
+    // TfLiteStatus status = TfLiteTensorCopyToBuffer(output_tensor_count, count_buffer, sizeof(float));
+    // int count = (int)count_buffer[0];
+    // printf("count: %i\n", count);
 
     /* bounding boxes */
     const TfLiteTensor *output_tensor_boxes = TfLiteInterpreterGetOutputTensor(interpreter, 0);
     float boxes[count][4];
     TfLiteTensorCopyToBuffer(output_tensor_boxes, boxes, count * 4 * sizeof(float));
+
+    const TfLiteTensor *output_tensor_score = TfLiteInterpreterGetOutputTensor(interpreter, 2);
+    float scores_buffer[count];
+    TfLiteTensorCopyToBuffer(output_tensor_score, scores_buffer, count * sizeof(float));
+
     for (int i = 0; i < count; i++)
     {
-        printf("boxes[%d] = %f %f %f %f\n", i, boxes[i][0], boxes[i][1], boxes[i][2], boxes[i][3]);
+        printf("%f,%f,%f,%f,%f\n", scores_buffer[i], boxes[i][0], boxes[i][1], boxes[i][2], boxes[i][3]);
     }
 
     /* labels (there is only 1 label...) */
     //const TfLiteTensor *output_tensor_classes = TfLiteInterpreterGetOutputTensor(interpreter, 1);
-
-    /* score per bounding box */
-    const TfLiteTensor *output_tensor_score = TfLiteInterpreterGetOutputTensor(interpreter, 2);
-    float scores_buffer[count];
-    TfLiteTensorCopyToBuffer(output_tensor_score, scores_buffer, count * sizeof(float));
-    for (int i = 0; i < count; i++)
-    {
-        printf("scores[%d] =  %f\n", i, scores_buffer[i]);
-    }
 
     /* dispose of the TensorFlow objects */
     disposeTfLiteObjects(model, interpreter);
