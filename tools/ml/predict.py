@@ -48,6 +48,11 @@ def detect_objects(interpreter, image, image_size, threshold=0.1, labels=None):
     scores = get_output_tensor(interpreter, 2)
     count = int(get_output_tensor(interpreter, 3))
 
+    print("boxes: {}".format(boxes))
+    print("classes: {}".format(classes))
+    print("scores: {}".format(scores))
+    print("count: {}".format(count))
+
     objs = []
     for i in range(count):
         if scores[i] >= threshold:
@@ -76,7 +81,7 @@ def preprocess_image(image_path, input_size):
     img = tf.image.convert_image_dtype(img, tf.uint8)
     original_image = img
     resized_img = tf.image.resize(img, input_size)
-    resized_img = resized_img[tf.newaxis, :]
+    #resized_img = resized_img[tf.newaxis, :]
     return resized_img, original_image
 
 def predict(model, labels, image, threshold, output=None):
@@ -97,8 +102,8 @@ def predict(model, labels, image, threshold, output=None):
     interpreter = load_model(model)
     _, input_height, input_width, _ = interpreter.get_input_details()[0]['shape']
 
-    #print("Model input: {}".format(interpreter.get_input_details()[0]['shape']))
-    #print("Model output: {}".format(interpreter.get_output_details()[0]['shape']))
+    print("Model input: {}".format(interpreter.get_input_details()[0]['shape']))
+    print("Model output: {}".format(interpreter.get_output_details()[0]['shape']))
 
     #print(interpreter.get_input_details())
     classes = load_classes(labels)
@@ -171,6 +176,9 @@ if __name__ == "__main__":
                                     fontColor,
                                     thickness,
                                     lineType)
+
+                    print("Drawing box: {} {} {} {}".format(x1, y1, x2, y2))
+
                 else:
 
                     cv2.rectangle(annotated_image,(x1,y1),(x2,y2),(255,0,0),1)
@@ -216,7 +224,10 @@ if __name__ == "__main__":
 
             if round((100 * box['score'] * 2), 1) > 50.0:
 
-                cv2.rectangle(annotated_image,(x1,y1),(x2,y2),(0,255,0),1)
+                print("Drawing box: {} {} {} {}".format(x1, y1, x2, y2))
+
+                cv2.rectangle(annotated_image,(int(0.411*512), int(0.195*204)),(int(0.47*512),int(0.55*204)),(0,255,0),1)
+                #cv2.rectangle(annotated_image,(x1,y1),(x2,y2),(0,255,0),1)
                 cv2.putText(    annotated_image, '{}: {}'.format(box['label'], round((100 * box['score'] * 2), 1)), 
                                 (x1, y1 - 10), 
                                 font, 

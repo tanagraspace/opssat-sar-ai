@@ -44,7 +44,11 @@ RUN apt-get update && apt-get install -y \
         sudo diffstat \
         python3 \
         python \
-        make swig
+        make swig \
+        gcc make gawk cpio g++ \
+        language-pack-en-base locales \
+        xz-utils bzip2 \
+        iproute2 iputils-ping
 
 ENV LANG=en_US.UTF-8
 
@@ -57,6 +61,9 @@ RUN groupadd -g 70 user && \
 USER user
 # Copy SDK
 COPY --from=builder /home/user/poky_sdk /home/user/poky_sdk
+
+WORKDIR /home/user/poky_sdk
+RUN touch conf/sanity.conf
 
 # setup for installing Google's bazel tool
 USER root

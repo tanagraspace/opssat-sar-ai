@@ -7,15 +7,15 @@ services:
     network_mode : "host"
     privileged: true    
     volumes:
-      #- ./input:/input
+      - ./input:/input
       - ./output:/output
       - ./models:/models
       - ./predict.py:/predict.py
-      - /home/tom/git/sar-ai/acquisition/data/jpg:/input
+      #- /home/tom/git/sar-ai/acquisition/data/jpg:/input
 
       #- ./learn.py:/learn.py
       #- /home/tom/git/opssat-sar-ai/tools/labelling/master_labelset.csv:/input/master_labelset.csv
-    command: python3 predict.py --image "/input/1645389029.12*"
-                                 --model "/models/b5abe1d2_efficientdet_lite0.tflite"
+    command: python3 predict.py --image "/input/*.jpg"
+                                 --model "/models//97708c55_efficientdet_lite1.tflite"
                                  --labels "/input/labels.txt"
     #command: python3 learn.py --labels_file /input/master_labelset_1class_train.csv --model_type efficientdet_lite1 --model_filename efficientdet_lite1.tflite

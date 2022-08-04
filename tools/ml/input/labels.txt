@@ -1,3 +1,1 @@
-beacon_short
-beacon_partial
-beacon_long
+beacon
