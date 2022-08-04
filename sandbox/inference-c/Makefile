@@ -25,7 +25,7 @@ INCLUDEPATH = -Istb -Itensorflow
 CFLAGS = -Wall -static -O3
 
 # Library flags
-LIBDIRFLAGS = -Ltflite/lib/$(ARCH)/tensorflowlite_c
+LIBDIRFLAGS = -Ltst/$(ARCH)/tensorflowlite_c
 LIBFLAGS = -ltensorflowlite_c -lm
 
 # Source directory and files.

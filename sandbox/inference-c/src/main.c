@@ -104,15 +104,18 @@ int infer(uint8_t *img_buffer, char *model_filename, int input_xsize, int input_
     /* the TfLiteTensorCopyFromBuffer function expect buffer of type float */
     float img_buffer_rescaled[image_size];
 
+    /* todo: make rescaling work, causes TfLiteTensorCopyFromBuffer to return an error code */
+    /* this is because the trained model expects uint values from 0 to 255 (and not floats) */
     /* the RGB range is 0-255. Rescale it based on given input mean and standard deviation */
     /* e.g. with input mean 0 and input std 255 the 0-255 RGB range is rescaled to 0-1 */
+    /*
     for(int i = 0; i < image_size; i++)
     {
         img_buffer_rescaled[i] = ((float)img_buffer[i] - input_mean) / input_std;
-    }
+    }*/
 
     /* copy the JPG image data into into the input tensor */
-    tfl_status = TfLiteTensorCopyFromBuffer(input_tensor, img_buffer_rescaled, image_size * sizeof(float));
+    tfl_status = TfLiteTensorCopyFromBuffer(input_tensor, img_buffer, image_size * sizeof(uint8_t));
     
     /* log and exit in case of error */
     if(tfl_status != kTfLiteOk)
@@ -135,28 +138,36 @@ int infer(uint8_t *img_buffer, char *model_filename, int input_xsize, int input_
 
     /* extract the output tensor data */
 
+    /* total bounding box count */
+    const TfLiteTensor *output_tensor_count = TfLiteInterpreterGetOutputTensor(interpreter, 3);  
+    float count_buffer[1];
+    TfLiteStatus status = TfLiteTensorCopyToBuffer(output_tensor_count, count_buffer, sizeof(float));
+    int count = (int)count_buffer[0];
+    printf("count: %i\n", count);
+
     /* bounding boxes */
     const TfLiteTensor *output_tensor_boxes = TfLiteInterpreterGetOutputTensor(interpreter, 0);
+    float boxes[count][4];
+    TfLiteTensorCopyToBuffer(output_tensor_boxes, boxes, count * 4 * sizeof(float));
+    for (int i = 0; i < count; i++)
+    {
+        printf("boxes[%d] = %f %f %f %f\n", i, boxes[i][0], boxes[i][1], boxes[i][2], boxes[i][3]);
+    }
 
     /* labels (there is only 1 label...) */
-    const TfLiteTensor *output_tensor_classes = TfLiteInterpreterGetOutputTensor(interpreter, 1);
+    //const TfLiteTensor *output_tensor_classes = TfLiteInterpreterGetOutputTensor(interpreter, 1);
 
     /* score per bounding box */
     const TfLiteTensor *output_tensor_score = TfLiteInterpreterGetOutputTensor(interpreter, 2);
-
-    /* total bounding box count */
-    const TfLiteTensor *output_tensor_count = TfLiteInterpreterGetOutputTensor(interpreter, 3);  
-    float count[1];
-    TfLiteStatus status = TfLiteTensorCopyToBuffer(output_tensor_count, count, sizeof(float));
-    printf("\ncount: %f", count[0]);
-
-
-    /* todo: do the doings */
+    float scores_buffer[count];
+    TfLiteTensorCopyToBuffer(output_tensor_score, scores_buffer, count * sizeof(float));
+    for (int i = 0; i < count; i++)
+    {
+        printf("scores[%d] =  %f\n", i, scores_buffer[i]);
+    }
 
     /* dispose of the TensorFlow objects */
     disposeTfLiteObjects(model, interpreter);
-
-    printf("6\n");
 }
 
 
@@ -188,8 +199,8 @@ int main(int argc, char *argv [])
             printf("\n  --model    / -m        tflite model filename");
             printf("\n  --xsize    / -x        training input width");
             printf("\n  --ysize    / -y        training input height");
-            printf("\n  --mean     / -n        input mean (optional)");
-            printf("\n  --std      / -s        input standard deviation (optional)");
+            printf("\n  --mean     / -n        input mean (optional - not supported)");
+            printf("\n  --std      / -s        input standard deviation (optional - not supported)");
             printf("\n  --help     / -?        this information\n\n");
             
             /* program exit code */

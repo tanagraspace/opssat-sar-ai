@@ -3,6 +3,23 @@ Use the TensorFlow Lite C API to run oject detection inferences on SDR JPG spect
 - Uses the [stb library](https://github.com/georgeslabreche/stb) for image processing.
 - Uses the [TensorFlow GitHub Repo (branch r2.9)](https://github.com/tensorflow/tensorflow/tree/r2.9) as the compiler's include path option.
 
+## Linker Setup
+Set the libary paths so that the compiler's linker knows where to look for the *tensorflowlite_c* shared object file:
+
+### On an x86_64 environment:
+```bash
+export LIBRARY_PATH="<PROJECT_PATH>/sandbox/inference-c/lib/x86_64/tensorflowlite_c"
+export LD_LIBRARY_PATH="<PROJECT_PATH>/sandbox/inference-c/lib/x86_64/tensorflowlite_c"
+sudo ldconfig
+```
+
+### ### On an ARM32 environment:
+```bash
+export LIBRARY_PATH="<PROJECT_PATH>/sandbox/inference-c/lib/arm32/tensorflowlite_c"
+export LD_LIBRARY_PATH="<PROJECT_PATH>/sandbox/inference-c/lib/arm32/tensorflowlite_c"
+sudo ldconfig
+```
+
 ## Build
 - Initialize and update the stb Git submodule: `git submodule init && git submodule update`
 - Compile with `make`. Can also compile for ARM architecture with `make TARGET=arm`
@@ -18,8 +35,8 @@ inference [options] ...
   --model    / -m        tflite model filename
   --xsize    / -x        training input width
   --ysize    / -y        training input height
-  --mean     / -n        input mean (optional)
-  --std      / -s        input standard deviation (optional)
+  --mean     / -n        input mean (optional - not supported)
+  --std      / -s        input standard deviation (optional - not supported)
   --help     / -?        this information
 ```
 
