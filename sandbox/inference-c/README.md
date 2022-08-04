@@ -21,11 +21,13 @@ sudo ldconfig
 ```
 
 ### Other
-Feel free to support other environments by including a dedicated architecture lib folder under `<PROJECT_PATH>/sandbox/inference-c/lib` and updated the *Makefile* to support cross-compiling in that environment.
+Feel free to support other environments by:
+- Including a dedicated architecture lib folder under `<PROJECT_PATH>/sandbox/inference-c/lib`.
+- Updating the *Makefile* to support cross-compiling in that environment (include a new TARGET option).
 
 ## Build
-- Initialize and update the stb Git submodule: `git submodule init && git submodule update`
-- Compile with `make`. Can also compile for ARM architecture with `make TARGET=arm`
+- Initialize and update the stb Git submodule: `git submodule init && git submodule update`.
+- Compile with `make`. Can also compile for ARM architecture with `make TARGET=arm`.
 
 ## Run
 Super easy to run.
