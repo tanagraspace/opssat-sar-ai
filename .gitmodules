@@ -1,3 +1,7 @@
 [submodule "sandbox/inference-c/stb"]
 	path = sandbox/inference-c/stb
 	url = https://github.com/georgeslabreche/stb.git
+[submodule "sandbox/inference-c/tensorflow"]
+	path = sandbox/inference-c/tensorflow
+	url = https://github.com/tensorflow/tensorflow.git
+	branch = r2.9
