@@ -45,29 +45,68 @@ def read_precision_recall(filename):
         next(reader)
         rows = [row for row in reader]
 
+        # read some metrics
         confidences = np.array([float(item[0]) for item in rows], dtype=np.float)
         precisions = np.array([float(item[1]) for item in rows], dtype=np.float)
         recalls = np.array([float(item[2]) for item in rows], dtype=np.float)
-        fp= np.array([int(item[3]) for item in rows], dtype=np.uint32)
+
+        # read the false positives, true positives, and false negatives
+        fp = np.array([int(item[3]) for item in rows], dtype=np.uint32)
         tp = np.array([int(item[4]) for item in rows], dtype=np.uint32)
         fn = np.array([int(item[5]) for item in rows], dtype=np.uint32)
+        
+        # calculate the true negatives
+        tmp_sum = (fp + tp + fn)
+        tn = [TOTAL_PREDICTIONS - s for s in tmp_sum]
 
-    return confidences, precisions, recalls, fp, tp, fn, filename
+        # calculate the specificity
+        specifities = tn / (tn + fp)
 
-def print_results(confidences, precisions, recalls, fp, tp, fn, modelname):
+        # calculate the accuracy
+        accuracies = (tp + tn) / (tp + fn + fp + tn)
 
-    print("{}: at {} recall: ".format(modelname, RECALL))
+        # calculate the balanced accuracy
+        balanced_accuracies = (recalls + specifities) / 2
+
+    # return all the results
+    return confidences, precisions, recalls, specifities, accuracies, balanced_accuracies, fp, tp, fn, tn, filename
+
+def print_results(confidences, precisions, recalls, specifities, accuracies, balanced_accuracies, fp, tp, fn, tn, modelname):
+
+    print("\n{} at {} recall: ".format(modelname, RECALL))
+
+    # calculate averages
     average_precision = calc_average_precision(recalls, precisions)
     average_recall = calc_average_recall(recalls, precisions)
+
+    # calculate metrics for the given RECALL value
     precision = np.interp(RECALL, recalls[::-1], precisions[::-1])
+    specificity = np.interp(RECALL, recalls[::-1], specifities[::-1])
     confidence = np.interp(RECALL, recalls[::-1], confidences[::-1])
+    accuracy = np.interp(RECALL, recalls[::-1], accuracies[::-1])
+    balanced_accuracy = np.interp(RECALL, recalls[::-1], balanced_accuracies[::-1])
     fscore = 2*(precision*RECALL) / (precision + RECALL)
-    print("Precision: {}, F-score: {}, Confidence: {}, AP: {}, AR: {}".format(precision, fscore, confidence, average_precision, average_recall))
+    
+    print("\t"\
+        "Accuracy: {}\n\t" \
+        "Balanced Accuracy: {}\n\t" \
+        "F-score: {}\n\t" \
+        "Precision: {}\n\t" \
+        "Specificity: {}\n\t" \
+        "Confidence: {}\n\t"  \
+        "Average Precision: {}\n\t" \
+        "Average Recall: {}"
+            .format(accuracy, balanced_accuracy, fscore, precision, specificity, confidence, average_precision, average_recall))
 
 
 if __name__ == "__main__":
 
+    # the total number of predictions
+    TOTAL_PREDICTIONS = 439 * 15
+
+    # target recall
     RECALL = 0.90
+
     print_results(*read_precision_recall(MODEL_A))
     print_results(*read_precision_recall(MODEL_B))
     print_results(*read_precision_recall(MODEL_C))
